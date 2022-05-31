@@ -1,62 +1,56 @@
-import { Component } from "react";
+import { useState, useCallback } from 'react';
 
-import FeedbackOptions from "components/FeedbackOptions";
-import Statistics from "components/Statistics";
-import Section from "components/Section";
-import Notification from "components/Notification";
-
+import FeedbackOptions from 'components/FeedbackOptions';
+import Statistics from 'components/Statistics';
+import Section from 'components/Section';
+import Notification from 'components/Notification';
 
 const options = ['good', 'neutral', 'bad'];
 
-class Feedback extends Component {
+const Feedback = () => {
+  const [state, setState] = useState({
+    good: 0,
+    neutral: 0,
+    bad: 0,
+  });
 
-    state = {
-        good: 0,
-        neutral: 0,
-        bad: 0
-    };
+  const handleClick = useCallback(
+    item => {
+      setState(prevState => ({
+        ...prevState,
+        [item]: prevState[item] + 1,
+      }));
+    },
+    [setState]
+  );
 
-    handleClick = item => {
-        this.setState(prevState => ({
-            [item]: prevState[item] + 1
-        }));
-    }
+  const items = Object.values(state);
+  const totalSum = items.reduce((item, acc) => (acc += item), 0);
 
-    calcTotal() {
-        const data = Object.values(this.state)
-        const total = data.reduce((item, acc) => (acc += item), 0);
-        return total
-    }
+  const positiveFb = state.good;
+  const positiveFbPercent = Math.ceil((positiveFb / totalSum) * 100);
 
-    calcPercent(){
-        const fromTotal = this.calcTotal();
-        const goodPercent = this.state.good;
-        return Math.ceil((goodPercent / fromTotal) * 100);
-    }
+  const { good, neutral, bad } = state;
 
-    render() {
-        const { good, neutral, bad } = this.state;
-        const total = this.calcTotal()
-        const percentage= this.calcPercent()
-        return (
-            <>
-                <FeedbackOptions options={options} onLeaveFeedback={this.handleClick} />
-                
-                <Section title="Statistics">
-                    {total ? (
-                        <Statistics
-                        good={good}
-                        neutral={neutral}
-                        bad={bad}
-                        total={total}
-                        percentage={percentage} /> ) :(
-                        <Notification message="There is no feedback" />
-                        )}
-                    </Section>
-            </>
-                
-        )
-    }
-}
+  return (
+    <>
+      <FeedbackOptions options={options} onLeaveFeedback={handleClick} />
+
+      <Section title="Statistics">
+        {totalSum ? (
+          <Statistics
+            good={good}
+            neutral={neutral}
+            bad={bad}
+            total={totalSum}
+            percentage={positiveFbPercent}
+          />
+        ) : (
+          <Notification message="There is no feedback" />
+        )}
+      </Section>
+    </>
+  );
+};
 
 export default Feedback;
